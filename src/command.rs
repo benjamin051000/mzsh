@@ -1,22 +1,23 @@
 use std::process::ExitCode;
-use std::process::{Command, Stdio};
+use std::process::Command;
 use crate::builtins;
 
+#[allow(dead_code)]
 fn unknown_command() -> ExitCode {
     println!("Unknown command");
     ExitCode::FAILURE
 }
 
 fn exec(words: Vec<&str>) -> ExitCode {
-    dbg!(&words);
-    assert!(words.len() >= 1);
-    let output = Command::new(words[0])
-        .args(&words[1..])
-        // .stdout(Stdio::piped())
-        .output()
-        .expect("Failed to execute command");
+    // TODO This doesn't run "interactively".
+    let output = Command::new(words[0]).args(&words[1..]).output();
 
-    println!("{}", String::from_utf8(output.stdout).unwrap());
+    if let Ok(output) = output {
+        println!("{}", String::from_utf8(output.stdout).unwrap());
+    }
+    else {
+        println!("Error: {}", output.err().unwrap());
+    }
 
     ExitCode::SUCCESS
 }
