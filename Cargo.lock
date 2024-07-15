@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "maish"
+name = "mzsh"
 version = "0.1.0"
