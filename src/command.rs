@@ -12,9 +12,10 @@ pub fn process(input: String) {
     let words = input.split_whitespace().collect::<Vec<_>>();
     dbg!(&words);
 
-    match words[0] {
+    match words.get(0).copied().unwrap_or("") {
         "echo" => builtins::echo(words),
         "exit" => builtins::exit(words),
+        "" => ExitCode::SUCCESS, // empty string shouldn't print an error
         &_ => unknown_command(),
     };
 }
