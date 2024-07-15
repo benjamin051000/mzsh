@@ -8,11 +8,9 @@ fn print_ps1() {
 }
 
 fn get_input() -> String {
-    use std::io;
-
     let mut line = String::new();
 
-    io::stdin()
+    std::io::stdin()
         .read_line(&mut line)
         .expect("Failed to read line");
 
