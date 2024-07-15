@@ -1,28 +1,23 @@
 use std::process::ExitCode;
+use std::process::{Command, Stdio};
 use crate::builtins;
-use nix::{sys::wait::waitpid, unistd::{fork, ForkResult, write}};
-use nix::libc;
 
 fn unknown_command() -> ExitCode {
     println!("Unknown command");
     ExitCode::FAILURE
 }
 
-fn exec(_words: Vec<&str>) -> ExitCode {
-    match unsafe{fork()} {
-        Ok(ForkResult::Parent {child}) => {
-            waitpid(child, None).unwrap();
-        },
-        Ok(ForkResult::Child) => {
-            write(std::io::stdout(), "I'm the child!\n".as_bytes()).ok();
-            // TODO exec command
-            unsafe {libc::_exit(0)};
-        }
-        Err(_) => {
-            eprintln!("Fork failed");
-            return ExitCode::FAILURE;
-        }
-    }
+fn exec(words: Vec<&str>) -> ExitCode {
+    dbg!(&words);
+    assert!(words.len() >= 1);
+    let output = Command::new(words[0])
+        .args(&words[1..])
+        // .stdout(Stdio::piped())
+        .output()
+        .expect("Failed to execute command");
+
+    println!("{}", String::from_utf8(output.stdout).unwrap());
+
     ExitCode::SUCCESS
 }
 
