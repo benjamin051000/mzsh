@@ -1,4 +1,5 @@
-use std::process::ExitCode;
+use std::path::Path;
+use std::env::set_current_dir;
 
 pub fn exit(args: Vec<&str>) -> ! {
     let exit_code = args
@@ -11,11 +12,21 @@ pub fn exit(args: Vec<&str>) -> ! {
     std::process::exit(exit_code);
 }
 
-pub fn echo(args: Vec<&str>) -> ExitCode {
+pub fn echo(args: Vec<&str>) -> Result<(), std::io::Error> {
     // TODO handle flags
 
-    let result = args.into_iter().skip(1).collect::<Vec<_>>().join(" ");
+    let result = args
+        .into_iter()
+        .skip(1)
+        .collect::<Vec<_>>()
+        .join(" ");
+
     println!("{}", result);
     
-    ExitCode::SUCCESS
+    Ok(())
 }
+
+pub fn cd(args: Vec<&str>) -> Result<(), std::io::Error> {
+    set_current_dir(Path::new(&args[1]))
+}
+

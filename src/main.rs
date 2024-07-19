@@ -2,10 +2,15 @@ mod command;
 mod builtins;
 use std::io::Write;
 use std::env;
-use std::process::ExitCode;
 
-fn print_ps1() {
-    print!("$ ");
+fn print_ps1(last: &Result<(), std::io::Error>) {
+    if last.is_ok() {
+        print!("$ ");
+    }
+    else {
+        print!("x $ ");
+    }
+
     std::io::stdout().flush().expect("Couldn't flush stdio");
 }
 
@@ -20,46 +25,45 @@ fn get_input() -> String {
 }
 
 
-fn interactive_mode() {
+fn interactive_mode() -> ! {
+    let mut last_cmd_err: Result<(), std::io::Error> = Ok(());
     loop {
-        print_ps1();
+        print_ps1(&last_cmd_err);
         let input = get_input();
-        command::process(input);
+        last_cmd_err = command::process(input);
     }
 }
 
 enum Mode {
     Interactive,
     SingleCommand(String),
-    Error
 }
 
 
-fn parse_args() -> Mode {
+fn parse_args() -> Result<Mode, ()> {
     let args: Vec<String> = env::args().skip(1).collect();
     if args.len() == 0 {
-        return Mode::Interactive;
+        return Ok(Mode::Interactive);
     }
     else {
        if args[0] == "-c" {
-            return Mode::SingleCommand(args[1..].join(" "));
+            return Ok(Mode::SingleCommand(args[1..].join(" ")));
         } 
     }
 
-    Mode::Error
+    Err(())
 }
 
 
-fn main() -> ExitCode {
+fn main() -> Result<(), std::io::Error> {
     match parse_args() {
-        Mode::Interactive => interactive_mode(),
-        Mode::SingleCommand(cmd) => command::process(cmd),
-        Mode::Error => {
+        Ok(Mode::Interactive) => interactive_mode(),
+        Ok(Mode::SingleCommand(cmd)) => command::process(cmd),
+        Err(..) => {
             println!("Error: Unknown argument.");
-            return ExitCode::FAILURE;
+            todo!()
         }
     }
 
-    ExitCode::SUCCESS
 }
 

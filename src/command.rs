@@ -1,28 +1,22 @@
-use std::process::ExitCode;
 use std::process::Command;
 use crate::builtins;
 
-#[allow(dead_code)]
-fn unknown_command() -> ExitCode {
-    println!("Unknown command");
-    ExitCode::FAILURE
-}
-
-fn exec(words: Vec<&str>) -> ExitCode {
+fn exec(words: Vec<&str>) -> Result<(), std::io::Error> {
     // TODO This doesn't run "interactively".
-    let output = Command::new(words[0]).args(&words[1..]).output();
+    let result = Command::new(words[0]).args(&words[1..]).output();
 
-    if let Ok(output) = output {
+    if let Ok(output) = result {
         println!("{}", String::from_utf8(output.stdout).unwrap());
     }
     else {
-        println!("Error: {}", output.err().unwrap());
+        println!("Error: {}", result.err().unwrap());
+        todo!("return an Err here")
     }
 
-    ExitCode::SUCCESS
+    Ok(())
 }
 
-pub fn process(input: String) {
+pub fn process(input: String) -> Result<(), std::io::Error> {
     // Check if it's a builtin.
 
     let words = input.split_whitespace().collect::<Vec<_>>();
@@ -32,7 +26,8 @@ pub fn process(input: String) {
         // TODO see Tsoding Daily "Forbidden Rust" to use the command pattern here?
         "echo" => builtins::echo(words),
         "exit" => builtins::exit(words),
-        "" => ExitCode::SUCCESS, // empty string shouldn't print an error
+        "cd" => builtins::cd(words),
+        "" => Ok(()), // empty string shouldn't print an error
         &_ => exec(words),
-    };
+    }
 }
